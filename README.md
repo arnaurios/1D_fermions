@@ -2,8 +2,8 @@
 Repository for codes and data for arXiv:2304.04725. The data is structured in folders containing data, figures and codes, as described below.
 
 ## Data folders
-The folders in the directory ``neural_network`` contain the data for energies obtained with the Neural Quantum State described in the paper. 
-The folders within the ``Diagonalization`` directory contain the data obtained with the direct diagonalization approach.
+``neural_network``: the folders in the directory ``neural_network`` contain the data for energies obtained with the Neural Quantum State described in the paper.  \br
+ ``Diagonalization``: the folders within the ``Diagonalization`` directory contain the data obtained with the direct diagonalization approach.
 
 ## Code folders
 ### A2_perturbation_theory
