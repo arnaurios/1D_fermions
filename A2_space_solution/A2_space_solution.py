@@ -5,11 +5,10 @@
 ##########################################################################
 import sys
 import numpy as np
-from scipy import linalg as LA
 import math
 import scipy
-import pandas as pd
 from scipy import interpolate
+from scipy import linalg as LA
 
 import os
 
@@ -27,6 +26,12 @@ nV=41
 nS=1
 V_strength=np.linspace(-20,20,nV)
 S_range=np.linspace(0.5,0.5,nS)
+
+nV=2
+nS=1
+V_strength=np.linspace(-20,20,nV)
+S_range=np.linspace(0.5,0.5,nS)
+
 
 # THIS IS OPTION FOR CHANGING S AND FIXED V
 #nV=1
