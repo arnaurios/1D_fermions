@@ -11,7 +11,8 @@ The python code and Jupyter notebook [A2_particles_HO_Gaussian_PT.ipynb](./A2_pe
  in this folder solve the 2-body problem of spinless fermions with a gaussian interaction by employing **perturbation theory** on the interaction.
 
 ### A2_space_solution
-The python code in this folder solves the 2-body problem of spinless fermions with a gaussian interaction by employing a discetization approach on real space.
+The python code and Jupyter notebook [A2_space_solution.ipynb](./A2_space_solution/A2_space_solution.ipynb)
+in this folder solves the 2-body problem of spinless fermions with a gaussian interaction by employing a discetization approach on real space.
 
 ### hartree_fock
 The python code in this folder solves the many-body problem of spinless fermions with a gaussian interaction by employing the Hartree-Fock method. The same discetization approach on real space is used as in the previous folder, but the many-body results are available. 
