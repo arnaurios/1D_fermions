@@ -1,7 +1,6 @@
 # coding: utf-8
 ##########################################################################
-# THIS PYTHON CODE SOLVES THE TWO-BODY PROBLEM IN 1D
-# 2 PARTICLES IN A HO TRAP WITH A GAUSSIAN INTERACTION
+# THIS PYTHON CODE SOLVES THE TWO-BODY PROBLEM IN 1D# 2 PARTICLES IN A HO TRAP WITH A GAUSSIAN INTERACTION
 ##########################################################################
 import sys
 import numpy as np
@@ -9,8 +8,6 @@ from numpy import linalg as LA
 import matplotlib.pyplot as plt
 import math
 import scipy
-#import scipy.fft
-import pandas as pd
 from scipy import interpolate
 
 import os
@@ -24,15 +21,16 @@ eps_system=sys.float_info.epsilon
 zero_low=eps_system*1000
 
 # NUMBER OF PARTICLES
-A_num_part=6
+A_num_part=12
 Astr=str(A_num_part)
 print(Astr)
 
 # DEFINES THE VALUES OF INTERACTION STRENGTH AND INTERACTION RANGE
 #nV=41
-nV=3
+nV=41
 nS=1
 V_strength=np.linspace(-20,20,nV)
+#V_strength=np.linspace(0,0,nV)
 S_range=np.linspace(0.5,0.5,nS)
 VV,ss=np.meshgrid(V_strength,S_range)
 
@@ -42,29 +40,19 @@ VV,ss=np.meshgrid(V_strength,S_range)
 #V_strength=np.linspace(-20,-20,nV)
 
 # REAL-SPACE MESH DIMENSION AND NUMBER POINTS
-xL=6.
-Nx=240
-folder_numerics="xL" + str(xL) + "_Nx" + str(Nx)
-
-######################################################
-# CREATE DATA/PLOT DIRECTORY IF THEY DO NOT EXIST
-# PREPARE DATA AND PLOT FOLDERS
-datafolder="data"
-plotfolder="plots"
-if not os.path.exists(datafolder):
-    os.makedirs(datafolder)
-
-if not os.path.exists(plotfolder):
-    os.makedirs(plotfolder)
-
-if not os.path.exists("data/" + folder_numerics):
-    os.makedirs("data/" + folder_numerics)
-data_folder="data/" + folder_numerics + "/"
-
-if not os.path.exists("plots/" + folder_numerics):
-    os.makedirs("plots/" + folder_numerics)
-plot_folder="plots/" + folder_numerics + "/"
-######################################################
+if( A_num_part < 5 ) :
+    xL=5.
+    Nx=200
+elif( A_num_part >= 6 and A_num_part < 10 ) :
+    xL=6.
+    Nx=240
+elif( A_num_part >= 10 and A_num_part < 15 ) :
+    xL=10.
+    Nx=400
+else:
+    print("Check mesh extent for A=",A_num_part)
+    exit()
+    
 
 # GRID SPACING
 delx=2*xL/Nx
@@ -100,16 +88,27 @@ for i, xi in enumerate( xx ) :
 der2=-np.real(cder2)*delx*delp/2./pi
 kin_mat=-der2/2. # COULD ADD HBAR2/M HERE IF OTHER UNITS USED
 
+folder_numerics="xL" + str(xL) + "_Nx" + str(Nx)
 
-# SECOND DERIVATIVE MATRIX - EXPERIMENTAL FEATURE TO BE CHECKED
-#cder2=np.zeros((Nx,Nx),complex)
-#der2=np.zeros((Nx,Nx))
-#np.fill_diagonal( cder2,np.power(pp,2) )
-#print(cder2[0:4,0:4])
-#cder2=scipy.fft.fft2(cder2.T)
-# ADD PHYSICAL FACTORS AND KEEP REAL PART ONLY FOR SECOND DERIVATIVE
-#der2=-np.real(cder2)*delx*delp/2./pi
-#kin_mat=-der2/2. # COULD ADD HBAR2/M HERE IF OTHER UNITS USED
+######################################################
+# CREATE DATA/PLOT DIRECTORY IF THEY DO NOT EXIST
+# PREPARE DATA AND PLOT FOLDERS
+datafolder="data"
+plotfolder="plots"
+if not os.path.exists(datafolder):
+    os.makedirs(datafolder)
+
+if not os.path.exists(plotfolder):
+    os.makedirs(plotfolder)
+
+if not os.path.exists("data/" + folder_numerics):
+    os.makedirs("data/" + folder_numerics)
+data_folder="data/" + folder_numerics + "/"
+
+if not os.path.exists("plots/" + folder_numerics):
+    os.makedirs("plots/" + folder_numerics)
+plot_folder="plots/" + folder_numerics + "/"
+######################################################
 
 
 # HARMONIC OSCILLATOR MATRIX IN REAL SPACE - DIAGONAL
@@ -141,20 +140,6 @@ energy=np.zeros((5,nV,nS))
 A_num_sum=np.zeros((nV,nS))
 rms_den=np.zeros((nV,nS))
 
-#H0 = np.zeros((Nx,Nx))
-#H0 = kin_mat.copy()
-#np.fill_diagonal(H0,H0.diagonal() + U_HO)
-# COMPUTE EIGENVALUES AND EIGENVECTORS OF RELATIVE COORDINATE MATRIX
-#eivals,eivecs=LA.eigh(H0)
-#
-# SORT EIGENVALUES AND EIGENVECTORS
-#isort=np.argsort(eivals)
-#eivals=eivals[isort]
-#eivecs=eivecs[isort]
-
-#for ieig in range(Nmax) :
-#    wwf = eivecs[:,ieig]/np.sqrt(delx)
-#    wfy[:,ieig] = wwf
 header_screen="# ITER".ljust(8)+"NUM_PART".ljust(14) + "X_CM".ljust(13) + "EHF".ljust(13) + "EHF2".ljust(13) + "EKIN".ljust(13) + "EPOT".ljust(13) + "ESUM".ljust(13) + "DIFFS"
 
 # LOOP OVER INTERACTION RANGE
@@ -173,6 +158,7 @@ for iS,s in enumerate( S_range ) :
         iter=0
         diffs=10.
         while ( diffs > accu and iter<itermax ) :
+            
             iter=iter+1
             # ... PREPARE DENSITY AND DENSITY MATRIX FROM ORBITALS
             hf_den=0.
@@ -181,15 +167,21 @@ for iS,s in enumerate( S_range ) :
                 hf_den=hf_den+ np.power( abs( wfy[:,ieig] ), 2)
                 hf_den_mat=hf_den_mat + np.outer( wfy[:,ieig], wfy[:,ieig] )
 
-            # ... COMPUTE MEAN-FIELD
+            # COMPUTE DENSITY
             denf=hf_den
-            # DIRECT TERM
+            
+            # COMPUTE PAIR DISTRIBUTION FUNCTION
+#            pair_dist=( np.outer( denf,denf ) - hf_den_mat*hf_den_mat.T ) /2
+            pair_dist=( np.outer( denf,denf ) - hf_den_mat*hf_den_mat.transpose() )/2 
+
+            # MEAN-FIELD - DIRECT TERM
             Udir = delx*np.matmul(Vint,denf)
-            # EXCHANGE TERM
+            
+            # MEAN-FIELD - DIRECT TERM
             Umf_mat = -delx*Vint*hf_den_mat
 
             Uexc = np.diagonal(Umf_mat).copy()
-            #print(Uexc[0:5])
+
             # ADD ALL MEAN-FIELD TERMS TOGETHER
             np.fill_diagonal( Umf_mat, Umf_mat.diagonal() + Udir + U_HO)
             # MEAN-FIELD ALONG DIAGONAL
@@ -320,9 +312,31 @@ for iS,s in enumerate( S_range ) :
             for line in data_to_write:
                 np.savetxt(file_id,line,fmt=["%16.6E","%16.6E","%16.6E"],header="  ")
 
+        # PAIR DISTRIBUTION FUNCTION
+        if( nS == 1) :
+            outputfiledm=data_folder + "pairdist_" + Astr +"_particles_V0=" + V0string + ".dat"
+        elif( nV==1 ) :
+            outputfiledm=data_folder + "pairdist_" + Astr +"_particles_s=" + s_string + ".dat"
+        else :
+            outputfiledm=data_folder + "pairdist_" + Astr +"_particles_V0=" + V0string + "_s=" + s_string + ".dat"
+
+        if os.path.exists(outputfiledm) :
+            os.remove(outputfiledm)
+
+        formatr=["%16.6E"] * 4
+        xfac=1#1.25#np.sqrt(2)
+        
+        print( xfac )
+        data_to_write = np.array( [ x1[:,:]*xfac,x2[:,:]*xfac,pair_dist[:,:] ] ).T
+        header="# V0=" + str(V0) + ", s=" + str(s) + " \n#  x1  x2  pair dist"
+        with open(outputfiledm,"w+") as file_id :
+            np.savetxt(file_id,[header],fmt="%s")
+            for line in data_to_write:
+                np.savetxt(file_id,line,fmt=["%16.6E","%16.6E","%16.6E"],header="  ")
+
+
         ##############################################################################
-        # PLOT DENMAT
-        # DENSITY
+        # PLOTS OF DENSITY
         if( nS == 1) :
             plot_filedd=plot_folder + "density_" + Astr + "_particles_V0=" + V0string + ".pdf"
         elif( nV==1 ) :
@@ -340,7 +354,8 @@ for iS,s in enumerate( S_range ) :
         plt.savefig(plot_filedd)
         plt.close()
 
-
+        ##############################################################################
+        # PLOTS OF DENSITY MATRIX
         if( nS == 1) :
             plot_filedm=plot_folder + "denmat_" + Astr + "_particles_V0=" + V0string + ".pdf"
         elif( nV==1 ) :
@@ -363,6 +378,32 @@ for iS,s in enumerate( S_range ) :
         ax.set_ylim([-6,6])
         plt.savefig(plot_filedm)
         #plt.show()
+        plt.close(fig)
+
+        ##############################################################################
+        # PLOTS OF PAIR DISTRIBIUTION
+        if( nS == 1) :
+            plot_filedm=plot_folder + "pairdist_" + Astr + "_particles_V0=" + V0string + ".pdf"
+        elif( nV==1 ) :
+            plot_filedm=plot_folder + "pairdist_" + Astr + "_particles_s=" + s_string + ".pdf"
+        else :
+            plot_filedm=plot_folder + "pairdist_" + Astr + "_particles_V0=" + V0string + "_s=" + s_string + ".pdf"
+
+        if os.path.exists( plot_filedm ) :
+            os.remove(plot_filedm)
+
+        fig, ax = plt.subplots()
+        fcont=ax.contourf(xx,xx,pair_dist,cmap='coolwarm')
+        ax.contour(xx,xx,pair_dist, colors='k')
+        ax.axis("square")
+        fig.colorbar(fcont,ax=ax)
+        ax.set_xlabel("Position, $x_1$ [ho units]")
+        ax.set_ylabel("Position, $x_2$ [ho units]")
+        ax.set_title("Density matrix, A=" + Astr + ", $V_0=$" + V0string + ", $s=$" + str(s) )
+        ax.set_xlim([-5,5])
+        ax.set_ylim([-5,5])
+        plt.savefig(plot_filedm)
+#        plt.show()
         plt.close(fig)
 
         print()

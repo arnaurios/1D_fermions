@@ -1,4 +1,4 @@
-# coding: utf-8
+ # coding: utf-8
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,7 +26,7 @@ plt.rcParams.update(params)
 line_label = ['Diag','NQS','PT','HF','Space']
 linestyle_color = ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00']
 linestyle_width = [2,4,2,2,2]
-linestyle_order = [2,3,0,1,4]
+linestyle_order = [-2,3,0,1,4]
 linestyle_dashes = ['--','-','','-.','.']
 
 fig,ax = plt.subplots(nrows=1,ncols=1,figsize=(7,4))
@@ -57,8 +57,6 @@ D=1
 DD=str(D).zfill(2)
 print(HH,LL,DD)
 
-
-
 file_space="Hamiltonian_eigenvalues" + Astr + "_particles.dat"
 file0_PT="Hamiltonian_eigenvalues" + Astr + "_particles"
 
@@ -88,6 +86,13 @@ fname_PT3= folder_PT + file0_PT + "_order3.dat"
 if os.path.exists(fname_PT3) :
     xPT3 = np.loadtxt(fname_PT3,unpack=True)
     s0pt3=xPT3[1,:].T
+
+# DIAGONALIZATION DATA
+folder_diag="../Diagonalization/data_s_V/"
+filediag="Hamiltonian_eigenvalues2_particles.dat"
+fname_diag= folder_diag + filediag
+if( pos_neg == "-" ) : icol=1
+if( pos_neg == "+" ) : icol=2
 
 c_full = plt.cm.Blues(np.linspace(1,0.3,nstate))
 
@@ -123,7 +128,11 @@ for istate in range(nstate) :
         print(fname_2d)
         iplot=4
         ax.plot(s0sp,xspace[istate+2,:].T,linestyle_dashes[iplot],color=linestyle_color[iplot],label=line_label[iplot],zorder=linestyle_order[iplot],linewidth=linestyle_width[iplot],markersize=10)
-        #ax.plot(s0sp,xspace[istate+2,:].T,linestyle_dashes[iplot],color=linestyle_color[iplot],label=line_label[iplot],zorder=linestyle_order[iplot],linewidth=linestyle_width[iplot])
+
+    if os.path.exists(fname_diag) :
+        iplot=0
+        s_d,e_d = np.loadtxt(fname_diag,usecols=(0,icol),unpack=True)
+        ax.plot(s_d,e_d,"--",color=linestyle_color[iplot],alpha=1,label="Diag",zorder=3)
 
     if os.path.exists(fname_PT1) :
         iplot=2
@@ -136,7 +145,10 @@ for istate in range(nstate) :
         ax.plot(s0pt3,xPT3[istate+2,:].T,"--",color=linestyle_color[iplot],alpha=1,label="PT3")
 
 
-ax.legend(frameon=False,handlelength=3.2,fontsize=16,handletextpad=0.25,ncol=2)
+
+
+if(pos_neg == "-") : ax.legend(frameon=False,handlelength=3.2,fontsize=16,handletextpad=0.25,ncol=2,loc="upper right")
+if(pos_neg == "+") : ax.legend(frameon=False,handlelength=3.2,fontsize=16,handletextpad=0.25,ncol=2)
 ax.set_xlabel("Range, $\sigma_0$")
 ax.set_ylabel("Ground state energy, $E$")
 ax.set_title("A=" + Astr + ", $V_0=" + pos_neg + "20$" )
